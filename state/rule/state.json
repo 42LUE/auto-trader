@@ -19,5 +19,6 @@
       "200": 103259.38
     }
   },
-  "peak_equity": 20.0
+  "peak_equity": 20.0,
+  "account": "rule"
 }

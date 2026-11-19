@@ -1,0 +1,60 @@
+# One workflow, four triggers:
+#   schedule / manual  -> full daily job (rule trades, approved Claude decisions execute, reports, dashboard)
+#   push to decisions/ -> Kaileb merged a proposal (YES) or Claude logged a hold -> execute now
+#   proposal PR opened/closed -> refresh the dashboard so the YES/NO card appears/disappears
+# pull_request_target runs THIS file from main and we only check out main, so a PR can
+# never change what runs with write access.
+name: trader
+on:
+  schedule:
+    - cron: "15 0 * * *"        # 11:15am Sydney (AEDT)
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ["decisions/**"]
+  pull_request_target:
+    types: [opened, reopened, closed, edited, synchronize]
+concurrency:
+  group: trader                 # never two runs touching state at once
+  cancel-in-progress: false
+permissions:
+  contents: write
+  pull-requests: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -r requirements.txt
+      - name: Daily job
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          TRADER_API_KEY: ${{ secrets.TRADER_API_KEY }}
+          TRADER_API_SECRET: ${{ secrets.TRADER_API_SECRET }}
+          TRADER_LIVE_CONFIRM: ${{ secrets.TRADER_LIVE_CONFIRM }}
+        run: python daily.py
+      - name: Execute approved decision
+        if: github.event_name == 'push'
+        env:
+          TRADER_API_KEY: ${{ secrets.TRADER_API_KEY }}
+          TRADER_API_SECRET: ${{ secrets.TRADER_API_SECRET }}
+          TRADER_LIVE_CONFIRM: ${{ secrets.TRADER_LIVE_CONFIRM }}
+        run: python execute.py && python build_site.py
+      - name: Refresh dashboard
+        if: github.event_name == 'pull_request_target'
+        run: python build_site.py
+      - name: Commit state, reports, dashboard data
+        run: |
+          git config user.name "trader-bot"
+          git config user.email "trader-bot@users.noreply.github.com"
+          git add -A state reports data site
+          git diff --cached --quiet && exit 0
+          git commit -m "bot: ${{ github.event_name }} $(date -u +%F)"
+          for i in 1 2 3; do git pull --rebase -q origin main && git push -q && exit 0; sleep 5; done
+          exit 1

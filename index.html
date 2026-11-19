@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto-Trader · Claude trades, Kaileb approves</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<style>
+  :root{
+    --bg:#0e1013; --panel:#161a1f; --panel2:#1c2128; --line:#2a3038; --ink:#e8eaed; --ink2:#a7adb5; --ink3:#6f7680;
+    --claude:#e07a3f; --rule:#4c8dd6; --bh:#8a9099; --good:#3fb27f; --bad:#e05252; --warn:#d9a33f;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+  h1{font-size:20px;margin:0;letter-spacing:-.01em} h1 span{color:var(--claude)}
+  .meta{color:var(--ink3);font-size:13px;font-family:var(--mono)}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--line);color:var(--ink2);margin-left:6px}
+  .pill.live{border-color:var(--bad);color:var(--bad)} .pill.paper{border-color:var(--ink3)}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin:0 0 12px;font-weight:600}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:700px){.tiles{grid-template-columns:repeat(2,1fr)}}
+  .tile{background:var(--panel2);border-radius:10px;padding:12px}
+  .tile .k{font-size:12px;color:var(--ink3)} .tile .v{font:600 22px/1.2 var(--mono);margin-top:2px}
+  .tile .s{font-size:12px;color:var(--ink2);font-family:var(--mono)}
+  .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:0}
+  .up{color:var(--good)} .down{color:var(--bad)}
+  /* proposal card */
+  .proposal{border:1px solid var(--claude);background:linear-gradient(180deg,rgba(224,122,63,.10),transparent 60%);}
+  .prop-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .act{font:700 26px/1 var(--mono)} .act.buy{color:var(--good)} .act.sell{color:var(--bad)} .act.hold{color:var(--ink2)}
+  .conf{flex:1;min-width:160px} .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:4px}
+  .bar i{display:block;height:100%;background:var(--claude)}
+  .btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .btn{flex:1;min-width:140px;text-align:center;padding:12px 14px;border-radius:10px;font-weight:700;text-decoration:none;font-size:16px}
+  .yes{background:var(--good);color:#06150e} .no{background:transparent;color:var(--bad);border:1.5px solid var(--bad)}
+  .hint{font-size:12px;color:var(--ink3);margin-top:8px}
+  .kv{display:grid;grid-template-columns:110px 1fr;gap:6px 12px;margin-top:12px;font-size:14px}
+  .kv b{color:var(--ink3);font-weight:500}
+  ul.ev{margin:4px 0 0;padding-left:18px} ul.ev li{margin:2px 0}
+  .empty{color:var(--ink2)}
+  /* chart */
+  .chartbox{position:relative;height:260px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin-bottom:8px}
+  /* market */
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td,th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--ink3);font-weight:500;font-size:12px}
+  td.n{font-family:var(--mono);text-align:right} th.n{text-align:right}
+  /* decisions */
+  details.dec{border-bottom:1px solid var(--line);padding:10px 0}
+  details.dec:last-child{border-bottom:0}
+  details.dec summary{cursor:pointer;list-style:none;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  details.dec summary::-webkit-details-marker{display:none}
+  .d-date{font-family:var(--mono);color:var(--ink2);font-size:13px;min-width:88px}
+  .d-act{font:700 13px var(--mono);min-width:96px}
+  .chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+  .c-pending{background:rgba(224,122,63,.18);color:var(--claude)} .c-executed{background:rgba(63,178,127,.15);color:var(--good)}
+  .c-rejected{background:rgba(224,82,82,.15);color:var(--bad)} .c-hold{background:var(--panel2);color:var(--ink2)}
+  .c-approved{background:rgba(63,178,127,.10);color:var(--good)} .c-not_executed{background:rgba(217,163,63,.15);color:var(--warn)}
+  .d-sum{color:var(--ink2);font-size:14px;flex-basis:100%}
+  .body{padding:8px 0 4px;font-size:14px}
+  /* reports */
+  .tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+  .tab{background:var(--panel2);border:1px solid var(--line);color:var(--ink2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:13px}
+  .tab.on{color:var(--ink);border-color:var(--ink3)}
+  select{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px}
+  .md{font-size:14px;margin-top:10px} .md h1{font-size:17px;margin:.2em 0 .6em} .md table{margin:8px 0}
+  .md code{font-family:var(--mono);font-size:13px}
+  .warnbox{border:1px solid var(--bad);color:var(--bad);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-weight:600}
+  a{color:var(--rule)}
+  footer{color:var(--ink3);font-size:12px;text-align:center;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Auto-Trader <span>· Claude trades, you approve</span></h1>
+    <div class="meta" id="meta">loading…</div>
+  </header>
+  <div id="alerts"></div>
+
+  <section id="pending"><h2>Waiting for your decision</h2><div class="empty">Loading…</div></section>
+
+  <section>
+    <h2>Scoreboard</h2>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section>
+    <h2>Equity since start</h2>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--claude)"></i>Claude (your account)</span>
+      <span><i class="sw" style="background:var(--rule)"></i>Rule benchmark</span>
+      <span><i class="sw" style="background:var(--bh)"></i>Buy &amp; hold BTC</span>
+    </div>
+    <div class="chartbox"><canvas id="chart"></canvas></div>
+  </section>
+
+  <section>
+    <h2>Market today</h2>
+    <div id="market"></div>
+  </section>
+
+  <section>
+    <h2>Claude's decisions</h2>
+    <div id="decisions"></div>
+  </section>
+
+  <section>
+    <h2>Reports</h2>
+    <div class="tabs" id="tabs"></div>
+    <select id="rsel"></select>
+    <div class="md" id="report"></div>
+  </section>
+
+  <footer>Paper trading unless marked LIVE · not financial advice · <a id="repo" href="#">repo</a></footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money = v => v == null ? "–" : "$" + Number(v).toFixed(2);
+const pct = v => v == null ? "–" : (v >= 0 ? "+" : "") + (v * 100).toFixed(1) + "%";
+const cls = v => v > 0 ? "up" : v < 0 ? "down" : "";
+const ACT = {buy: "BUY", sell: "SELL", hold: "HOLD"};
+
+let DATA;
+fetch("site/data.json?ts=" + Date.now()).then(r => r.json()).then(d => { DATA = d; render(d); })
+  .catch(e => { $("#meta").textContent = "Couldn't load data: " + e; });
+
+function render(d) {
+  const ca = d.accounts.claude, ra = d.accounts.rule, s = d.snapshot;
+  const mode = ca ? ca.mode : (d.config.accounts?.claude?.mode || "paper");
+  $("#meta").innerHTML = `updated ${new Date(d.generated_at).toLocaleString("en-AU",{dateStyle:"medium",timeStyle:"short"})}`
+    + `<span class="pill ${mode}">${mode.toUpperCase()}</span>`;
+  $("#repo").href = "https://github.com/" + d.repo;
+
+  // alerts
+  const al = [];
+  for (const [n, a] of Object.entries(d.accounts)) if (a) {
+    if (a.shutdown) al.push(`${n}: SHUT DOWN by kill switch. Delete state/${n}/SHUTDOWN in the repo to restart.`);
+    if (a.paused) al.push(`${n}: PAUSED by the drawdown limit. Delete state/${n}/PAUSED in the repo to resume.`);
+  }
+  $("#alerts").innerHTML = al.map(t => `<div class="warnbox">⛔ ${esc(t)}</div>`).join("");
+
+  // pending proposals
+  const pend = d.decisions.filter(x => x.status === "pending");
+  $("#pending").innerHTML = "<h2>Waiting for your decision</h2>" + (pend.length ? pend.map(proposalCard).join("")
+    : `<div class="empty">Nothing to approve. ${lastDecisionLine(d)}</div>`);
+  if (pend.length) $("#pending").classList.add("proposal"); else $("#pending").classList.remove("proposal");
+
+  // tiles
+  const start = ca?.start_capital || 20;
+  const lastBH = (ca || ra)?.series.at(-1)?.bh;
+  const tile = (k, v, sub, sw) => `<div class="tile"><div class="k">${sw ? `<i class="sw" style="background:var(${sw})"></i>` : ""}${k}</div><div class="v">${v}</div><div class="s">${sub}</div></div>`;
+  $("#tiles").innerHTML =
+    tile("Claude (your account)", money(ca?.equity), ca ? `<span class="${cls(ca.equity - start)}">${pct(ca.equity / start - 1)}</span> · ${(ca.exposure * 100).toFixed(0)}% BTC` : "no data", "--claude") +
+    tile("Rule benchmark", money(ra?.equity), ra ? `<span class="${cls(ra.equity - start)}">${pct(ra.equity / start - 1)}</span> · ${(ra.exposure * 100).toFixed(0)}% BTC` : "no data", "--rule") +
+    tile("Buy & hold BTC", money(lastBH), lastBH ? `<span class="${cls(lastBH - start)}">${pct(lastBH / start - 1)}</span>` : "", "--bh") +
+    tile("BTC / AUD", s ? Number(s.price_now).toLocaleString("en-AU", {maximumFractionDigits: 0}) : "–",
+         s ? `1d <span class="${cls(s.returns["1d"])}">${pct(s.returns["1d"])}</span> · 7d <span class="${cls(s.returns["7d"])}">${pct(s.returns["7d"])}</span>` : "");
+
+  chart(d);
+  market(s);
+  decisions(d.decisions);
+  reports(d.reports);
+}
+
+function lastDecisionLine(d) {
+  const x = d.decisions[0];
+  if (!x) return "Claude hasn't made a decision yet — the first one arrives after the daily run.";
+  return `Latest: <b>${ACT[x.action] || "?"}</b> (${esc(x.date || x.file)}), ${esc(x.status.replace("_", " "))}.`;
+}
+
+function proposalCard(x) {
+  const conf = Math.round((x.confidence || 0) * 100);
+  const ev = (x.evidence || []).map(e => `<li>${esc(e)}</li>`).join("");
+  return `<div style="margin-bottom:6px">
+    <div class="prop-head">
+      <div class="act ${x.action}">${ACT[x.action]} → ${Math.round((x.target_exposure || 0) * 100)}% BTC</div>
+      <div class="conf"><span class="meta">confidence ${conf}%</span><div class="bar"><i style="width:${conf}%"></i></div></div>
+    </div>
+    <div style="margin-top:10px">${esc(x.thesis)}</div>
+    <div class="kv">
+      ${ev ? `<b>Evidence</b><div><ul class="ev">${ev}</ul></div>` : ""}
+      ${x.risks ? `<b>Risks</b><div>${esc(x.risks)}</div>` : ""}
+      ${x.invalidation ? `<b>Wrong if</b><div>${esc(x.invalidation)}</div>` : ""}
+      <b>Rule says</b><div>${x.rule_signal != null ? Math.round(x.rule_signal * 100) + "% BTC" : "–"}</div>
+      <b>Price then</b><div class="meta">${Number(x.price_at_proposal || 0).toLocaleString("en-AU")} AUD · expires ${x.expires_at ? new Date(x.expires_at).toLocaleString("en-AU",{dateStyle:"short",timeStyle:"short"}) : "in 36h"}</div>
+    </div>
+    <div class="btns">
+      <a class="btn yes" href="${x.pr_url}" target="_blank">✅ Yes — approve</a>
+      <a class="btn no" href="${x.pr_url}" target="_blank">❌ No — reject</a>
+    </div>
+    <div class="hint">Opens the proposal on GitHub. <b>Yes</b> = tap “Merge pull request” → Confirm. <b>No</b> = tap “Close pull request”. Ignoring it = no trade (expires).</div>
+  </div>`;
+}
+
+let CH;
+function chart(d) {
+  const ca = d.accounts.claude, ra = d.accounts.rule;
+  const base = ca || ra; if (!base) return;
+  const labels = [...new Set([...(ca?.series || []), ...(ra?.series || [])].map(p => p.d))].sort();
+  const map = (ser, k) => { const m = Object.fromEntries((ser || []).map(p => [p.d, p[k]])); return labels.map(l => m[l] ?? null); };
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const ds = [
+    {label: "Claude", data: map(ca?.series, "eq"), borderColor: css("--claude"), borderWidth: 2},
+    {label: "Rule", data: map(ra?.series, "eq"), borderColor: css("--rule"), borderWidth: 2},
+    {label: "Buy & hold", data: map(base.series, "bh"), borderColor: css("--bh"), borderWidth: 1.5, borderDash: [5, 4]},
+  ].map(x => ({...x, pointRadius: labels.length < 15 ? 3 : 0, pointHoverRadius: 5, tension: .15, spanGaps: true}));
+  CH?.destroy();
+  CH = new Chart($("#chart"), {type: "line", data: {labels, datasets: ds}, options: {
+    maintainAspectRatio: false, interaction: {mode: "index", intersect: false},
+    plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.dataset.label}: $${c.parsed.y?.toFixed(2)}`}}},
+    scales: {x: {ticks: {color: css("--ink3"), maxTicksLimit: 6}, grid: {display: false}},
+             y: {ticks: {color: css("--ink3"), callback: v => "$" + v}, grid: {color: css("--line")}}}}});
+}
+
+function market(s) {
+  if (!s) { $("#market").innerHTML = '<div class="empty">No snapshot yet.</div>'; return; }
+  const rows = Object.entries(s.moving_averages).map(([n, m]) =>
+    `<tr><td>${n}-day average</td><td class="n">${Number(m.value).toLocaleString("en-AU",{maximumFractionDigits:0})}</td>
+     <td class="n ${cls(m.price_vs_ma)}">${pct(m.price_vs_ma)}</td><td>${m.price_vs_ma > 0 ? "above ✓" : "below"}</td></tr>`).join("");
+  $("#market").innerHTML = `<table><tr><th>Level</th><th class="n">AUD</th><th class="n">Price vs it</th><th></th></tr>${rows}</table>
+    <div class="kv"><b>Returns</b><div class="meta">7d ${pct(s.returns["7d"])} · 30d ${pct(s.returns["30d"])} · 90d ${pct(s.returns["90d"])} · 1y ${pct(s.returns["365d"])}</div>
+    <b>RSI(14)</b><div class="meta">${s.rsi14}</div>
+    <b>Volatility</b><div class="meta">${(s.realised_vol_30d_annual * 100).toFixed(0)}% annualised (30d)</div>
+    <b>From 1y high</b><div class="meta ${cls(s.range_365d.drawdown_from_high)}">${pct(s.range_365d.drawdown_from_high)}</div>
+    <b>Rule wants</b><div class="meta">${Math.round(s.rule_benchmark_target * 100)}% BTC</div></div>`;
+}
+
+function decisions(list) {
+  if (!list.length) { $("#decisions").innerHTML = '<div class="empty">No decisions yet.</div>'; return; }
+  $("#decisions").innerHTML = list.map(x => {
+    const ex = x.execution?.outcome;
+    const ev = (x.evidence || []).map(e => `<li>${esc(e)}</li>`).join("");
+    const src = (x.sources || []).map(u => `<a href="${esc(u)}" target="_blank">${esc(new URL(u, location).hostname)}</a>`).join(" · ");
+    return `<details class="dec"><summary>
+      <span class="d-date">${esc(x.date || x.file.replace(".json",""))}</span>
+      <span class="d-act act ${x.action}">${ACT[x.action] || "?"} ${x.action !== "hold" ? "→ " + Math.round((x.target_exposure||0)*100) + "%" : ""}</span>
+      <span class="chip c-${x.status}">${esc(x.status.replace("_"," "))}</span>
+      <span class="meta">conf ${Math.round((x.confidence||0)*100)}%</span>
+      <span class="d-sum">${esc((x.thesis || "").slice(0, 140))}${(x.thesis||"").length > 140 ? "…" : ""}</span>
+    </summary><div class="body">
+      <div>${esc(x.thesis)}</div>
+      <div class="kv">
+        ${ev ? `<b>Evidence</b><div><ul class="ev">${ev}</ul></div>` : ""}
+        ${x.risks ? `<b>Risks</b><div>${esc(x.risks)}</div>` : ""}
+        ${x.invalidation ? `<b>Wrong if</b><div>${esc(x.invalidation)}</div>` : ""}
+        <b>Rule said</b><div>${x.rule_signal != null ? Math.round(x.rule_signal*100) + "% BTC" : "–"}</div>
+        ${ex ? `<b>Outcome</b><div class="meta">${esc(ex)}</div>` : ""}
+        ${x.pr_url ? `<b>Proposal</b><div><a href="${x.pr_url}" target="_blank">PR #${x.pr_number}</a></div>` : ""}
+        ${src ? `<b>Sources</b><div>${src}</div>` : ""}
+      </div></div></details>`;
+  }).join("");
+}
+
+let RK = "daily";
+function reports(r) {
+  const names = {daily: "Daily", weekly: "Weekly", "claude-review": "Claude review"};
+  $("#tabs").innerHTML = Object.keys(names).map(k =>
+    `<button class="tab ${k === RK ? "on" : ""}" data-k="${k}">${names[k]} (${(r[k] || []).length})</button>`).join("");
+  document.querySelectorAll(".tab").forEach(b => b.onclick = () => { RK = b.dataset.k; reports(r); });
+  const list = r[RK] || [];
+  $("#rsel").innerHTML = list.map((x, i) => `<option value="${i}">${esc(x.name)}</option>`).join("");
+  $("#rsel").style.display = list.length ? "" : "none";
+  const show = i => $("#report").innerHTML = list[i] ? marked.parse(list[i].md, {breaks: true}) : '<div class="empty">None yet.</div>';
+  $("#rsel").onchange = e => show(e.target.value);
+  show(0);
+}
+</script>
+</body>
+</html>

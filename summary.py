@@ -1,7 +1,7 @@
-"""Daily / weekly summaries from the bot's ledger. Deterministic: no AI, no cost.
+"""Daily / weekly reports (deterministic, no AI).
 
-  python summary.py daily    -> reports/daily/YYYY-MM-DD.md  (+ phone push)
-  python summary.py weekly   -> reports/weekly/YYYY-Www.md   (+ phone push)
+  python summary.py daily    -> reports/daily/YYYY-MM-DD.md   (+ phone push)
+  python summary.py weekly   -> reports/weekly/YYYY-Www.md    (+ phone push)
 """
 from __future__ import annotations
 
@@ -11,111 +11,116 @@ import sys
 from datetime import datetime, timezone
 
 import pandas as pd
-import yaml
 
 import bot
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPORTS = os.path.join(HERE, "reports")
-BACKTEST_MAX_DD = -0.25      # out-of-sample worst case, for the sanity checks
+SNAP = os.path.join(HERE, "data", "snapshot.json")
+BACKTEST_MAX_DD = -0.25
 BACKTEST_TRADES_PER_WEEK = 19.5 / 52
 
 
-def _load():
-    cfg = bot.load_cfg(os.path.join(HERE, "config.yaml"))
-    if not os.path.exists(bot.EQUITY):
-        return cfg, None, None, None
-    eq = pd.read_csv(bot.EQUITY, parse_dates=["time"])
-    tr = pd.read_csv(bot.TRADES, parse_dates=["time"]) if os.path.exists(bot.TRADES) else pd.DataFrame()
-    with open(bot.STATE) as f:
-        st = json.load(f)
-    return cfg, eq, tr, st
+def acct(name: str) -> dict | None:
+    P = bot.Paths(name)
+    if not os.path.exists(P.equity):
+        return None
+    eq = pd.read_csv(P.equity, parse_dates=["time"])
+    tr = pd.read_csv(P.trades, parse_dates=["time"]) if os.path.exists(P.trades) else pd.DataFrame()
+    st = json.load(open(P.state))
+    flag = "🛑 SHUT DOWN" if os.path.exists(P.shutdown) else "⏸️ PAUSED" if os.path.exists(P.paused) else "✅"
+    return {"eq": eq, "tr": tr, "st": st, "flag": flag}
 
 
-def _status_line():
-    if os.path.exists(bot.SHUTDOWN):
-        return "🛑 SHUT DOWN (kill switch)"
-    if os.path.exists(bot.PAUSED):
-        return "⏸️ PAUSED, needs your approval"
-    return "✅ running"
+def _exec_log() -> dict:
+    p = bot.Paths("claude").executions
+    return json.load(open(p)) if os.path.exists(p) else {}
 
 
-def _signal_block(st) -> list[str]:
-    sig = st.get("last_signal")
-    if not sig:
+def _signal_lines() -> list[str]:
+    if not os.path.exists(SNAP):
         return []
-    c = sig["close"]
-    lines = ["", "**Signal** (price vs moving averages; 3-4 above = 100%, 2 = 50%, else cash):"]
-    for n, ma in sig["mas"].items():
-        lines.append(f"- {n}-day avg {ma:,.0f}: price is {c / ma - 1:+.1%} {'above ✓' if c > ma else 'below'}")
-    return lines
+    s = json.load(open(SNAP))
+    out = [f"**Market** BTC/AUD {s['close']:,.0f} · 1d {s['returns']['1d']:+.1%} · "
+           f"7d {s['returns']['7d']:+.1%} · 30d {s['returns']['30d']:+.1%} · RSI {s['rsi14']}"]
+    mas = " · ".join(f"{n}d {v['price_vs_ma']:+.1%}" for n, v in s["moving_averages"].items())
+    out.append(f"Price vs averages: {mas} · rule wants {s['rule_benchmark_target']:.0%} BTC")
+    return out
 
 
 def daily() -> str:
-    cfg, eq, tr, st = _load()
-    if eq is None:
+    c, r = acct("claude"), acct("rule")
+    any_ = c or r
+    if not any_:
         return "No runs yet."
-    last = eq.iloc[-1]
-    prev = eq.iloc[-2] if len(eq) > 1 else last
-    start = st["start_capital"]
-    expo = last["btc"] * last["price"] / max(last["equity"], 1e-9)
-    day_chg = last["equity"] - prev["equity"]
-    lines = [
-        f"# Daily: {last['candle']} ({cfg['mode']})",
-        f"{_status_line()} · action today: **{last['action']}**",
-        "",
-        f"- Equity **${last['equity']:.2f}** ({day_chg:+.2f} today, {last['equity'] - start:+.2f} total)",
-        f"- Buy & hold would be ${last['buy_hold_equity']:.2f}",
-        f"- BTC {last['price']:,.0f} · exposure {expo:.0%} · target {last['target']:.0%}",
-    ]
-    lines += _signal_block(st)
+    candle = any_["eq"].iloc[-1]["candle"]
+    lines = [f"# Daily: {candle}", ""]
+    lines += _signal_lines() + [""]
+    for name, a in (("Claude (trades for you)", c), ("Rule benchmark", r)):
+        if not a:
+            continue
+        e = a["eq"]
+        last, prev = e.iloc[-1], e.iloc[-2] if len(e) > 1 else e.iloc[-1]
+        expo = last["btc"] * last["price"] / max(last["equity"], 1e-9)
+        lines.append(f"- **{name}** {a['flag']} {a['st']['mode']}: ${last['equity']:.2f} "
+                     f"({last['equity'] - prev['equity']:+.2f} today, "
+                     f"{last['equity'] - a['st']['start_capital']:+.2f} total) · {expo:.0%} BTC · "
+                     f"last action: {last['action']}")
+    bh = any_["eq"].iloc[-1]["buy_hold_equity"]
+    lines.append(f"- Buy & hold BTC since start: ${bh:.2f}")
+    ex = _exec_log()
+    today = [v for k, v in ex.items() if v.get("checked_at", "")[:10] == datetime.now(timezone.utc).strftime("%Y-%m-%d")]
+    if today:
+        lines += ["", "**Claude decisions processed today:**"]
+        lines += [f"- {v['decision']}: {v['action']} → {v['target']} — {v['outcome']}" for v in today]
     return "\n".join(lines)
 
 
 def weekly() -> str:
-    cfg, eq, tr, st = _load()
-    if eq is None:
+    c, r = acct("claude"), acct("rule")
+    if not (c or r):
         return "No runs yet."
-    start = st["start_capital"]
-    last = eq.iloc[-1]
-    wk = eq[eq["time"] >= eq["time"].max() - pd.Timedelta(days=7)]
-    w0 = wk.iloc[0]
-    wtr = tr[tr["time"] >= eq["time"].max() - pd.Timedelta(days=7)] if len(tr) else tr
-    peak = eq["equity"].cummax()
-    dd_now = last["equity"] / peak.iloc[-1] - 1
-    max_dd = (eq["equity"] / peak - 1).min()
-    weeks = max((eq["time"].max() - eq["time"].min()).days / 7, 1)
-    lines = [
-        f"# Weekly: week ending {last['candle']} ({cfg['mode']})",
-        _status_line(),
-        "",
-        "| | This week | Since start |",
-        "|---|---|---|",
-        f"| Bot | {last['equity'] / w0['equity'] - 1:+.1%} | {last['equity'] / start - 1:+.1%} (${last['equity']:.2f}) |",
-        f"| Buy & hold BTC | {last['buy_hold_equity'] / w0['buy_hold_equity'] - 1:+.1%} | "
-        f"{last['buy_hold_equity'] / start - 1:+.1%} (${last['buy_hold_equity']:.2f}) |",
-        "",
-        f"- Trades this week: {len(wtr)} · total {len(tr)} · fees paid ${st['fees_paid']:.3f}",
-        f"- Drawdown now {dd_now:.1%} · worst so far {max_dd:.1%} (pause at "
-        f"{-(cfg.get('pause_drawdown') or 1):.0%})",
-        f"- Does it pay for itself yet? Profit ${last['equity'] - start:+.2f}. No."
-        if last["equity"] - start < 30 else f"- Profit ${last['equity'] - start:+.2f}.",
-    ]
-    lines += _signal_block(st)
-    # deterministic "what could I be wrong about" checks
+    base = c or r
+    end = base["eq"]["time"].max()
+    lines = [f"# Weekly: week ending {base['eq'].iloc[-1]['candle']}", "",
+             "| Account | This week | Since start | Trades (wk / total) | Fees |", "|---|---|---|---|---|"]
     warn = []
-    if max_dd < BACKTEST_MAX_DD:
-        warn.append(f"Drawdown {max_dd:.0%} is worse than the backtest's worst ({BACKTEST_MAX_DD:.0%}).")
-    if len(tr) / weeks > 3 * BACKTEST_TRADES_PER_WEEK and len(tr) >= 4:
-        warn.append(f"Trading {len(tr) / weeks:.1f}x/week vs ~{BACKTEST_TRADES_PER_WEEK:.1f} in backtest: "
-                    "whipsaw or a bug.")
-    gap = (last["equity"] / start) - (last["buy_hold_equity"] / start)
-    if gap < -0.15:
-        warn.append(f"Lagging buy & hold by {-gap:.0%}: normal in a fast rally, a concern if it persists.")
-    if st["fees_paid"] > 0.05 * start:
-        warn.append(f"Fees (${st['fees_paid']:.2f}) are over 5% of starting capital.")
+    for name, a in (("Claude", c), ("Rule", r)):
+        if not a:
+            continue
+        e = a["eq"]
+        wk = e[e["time"] >= end - pd.Timedelta(days=7)]
+        start = a["st"]["start_capital"]
+        ntr = len(a["tr"])
+        wtr = len(a["tr"][a["tr"]["time"] >= end - pd.Timedelta(days=7)]) if ntr else 0
+        lines.append(f"| {name} {a['flag']} | {e.iloc[-1]['equity'] / wk.iloc[0]['equity'] - 1:+.1%} | "
+                     f"{e.iloc[-1]['equity'] / start - 1:+.1%} (${e.iloc[-1]['equity']:.2f}) | {wtr} / {ntr} | "
+                     f"${a['st']['fees_paid']:.3f} |")
+        dd = (e["equity"] / e["equity"].cummax() - 1).min()
+        weeks = max((e["time"].max() - e["time"].min()).days / 7, 1)
+        if dd < BACKTEST_MAX_DD:
+            warn.append(f"{name}: drawdown {dd:.0%} is worse than the rule's backtest worst ({BACKTEST_MAX_DD:.0%}).")
+        if ntr >= 4 and ntr / weeks > 3 * BACKTEST_TRADES_PER_WEEK:
+            warn.append(f"{name}: {ntr / weeks:.1f} trades/week vs ~{BACKTEST_TRADES_PER_WEEK:.1f} for the rule "
+                        "— fees will bite.")
+        if a["st"]["fees_paid"] > 0.05 * start:
+            warn.append(f"{name}: fees ${a['st']['fees_paid']:.2f} are over 5% of starting capital.")
+    e = base["eq"]
+    wk = e[e["time"] >= end - pd.Timedelta(days=7)]
+    lines.append(f"| Buy & hold | {e.iloc[-1]['buy_hold_equity'] / wk.iloc[0]['buy_hold_equity'] - 1:+.1%} | "
+                 f"{e.iloc[-1]['buy_hold_equity'] / 20 - 1:+.1%} | – | – |")
+    if c and r:
+        gap = c["eq"].iloc[-1]["equity"] - r["eq"].iloc[-1]["equity"]
+        lines += ["", f"**Claude vs rule: {gap:+.2f}** — "
+                  + ("Claude is ahead." if gap > 0.005 else "the rule is ahead." if gap < -0.005 else "level.")]
+    ex = _exec_log()
+    wex = [v for v in ex.values() if v.get("checked_at", "") >= (end - pd.Timedelta(days=7)).isoformat()]
+    if wex:
+        lines += ["", "**Claude's decisions this week:**"]
+        lines += [f"- {v['decision']}: {v['action']} → {v['target']} — {v['outcome']}" for v in wex]
+    lines += [""] + _signal_lines()
     lines += ["", "**What could I be wrong about?**"]
-    lines += [f"- ⚠️ {w}" for w in warn] or ["- Nothing outside backtest expectations this week."]
+    lines += [f"- ⚠️ {w}" for w in warn] or ["- Nothing outside expectations this week."]
     return "\n".join(lines)
 
 
@@ -127,8 +132,7 @@ def write(kind: str) -> str:
     os.makedirs(d, exist_ok=True)
     with open(os.path.join(d, f"{name}.md"), "w") as f:
         f.write(text + "\n")
-    cfg = bot.load_cfg(os.path.join(HERE, "config.yaml"))
-    bot.notify(cfg, f"Trader {kind} summary", text.replace("**", ""))
+    bot.notify(bot.load_cfg(), f"Trader {kind} summary", text.replace("**", ""))
     return text
 
 

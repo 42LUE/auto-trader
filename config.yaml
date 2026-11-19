@@ -1,26 +1,32 @@
 # ---- $20 auto-trader config ------------------------------------------------
-# Phase 1 = paper. Do not change mode to live until Kaileb has approved it.
-mode: paper                 # paper | live
-live_approved: false        # Kaileb flips this, nobody else. Live also needs
-                            # env TRADER_LIVE_CONFIRM=I_APPROVE_REAL_MONEY
+# Changing this file = a pull request Kaileb merges. Claude never pushes it to main.
 
-exchange: kraken            # any ccxt id. kraken works from anywhere (incl. GitHub
-                            # Actions). binance = 0.1% fees but blocks US IPs, so
-                            # run it from your own PC in Australia.
-symbol: BTC/AUD             # binance: BTC/USDT is the deepest book
+exchange: kraken            # any ccxt id. kraken works from GitHub Actions.
+symbol: BTC/AUD
 
-strategy: trend_ensemble_half
-strategy_params: {}
+accounts:
+  claude:                   # trades for Kaileb: executes ONLY decisions he approved
+    mode: paper             # paper | live
+    live_approved: false    # Kaileb flips this. Live also needs secret
+                            # TRADER_LIVE_CONFIRM=I_APPROVE_REAL_MONEY
+  rule:                     # benchmark, always paper, fully automatic
+    strategy: trend_ensemble_half
+    strategy_params: {}
 
-start_capital: 20.0         # paper starting balance (AUD)
-max_capital: 20.0           # live: bot never manages more than this
-kill_switch_equity: 0.0     # your rule: shut down at $0. I'd suggest 10.0 (−50%).
-pause_drawdown: 0.30        # go to cash + wait for approval if equity falls 30%
-                            # from its peak (backtest worst was -25%; worse = something's off)
+start_capital: 20.0         # each account starts with this (AUD)
+max_capital: 20.0           # live: never manage more than this
+allowed_exposures: [0.0, 0.5, 1.0]   # Claude can only propose these
+kill_switch_equity: 0.0     # Kaileb's rule: shut down at $0
+pause_drawdown: 0.30        # -30% from peak -> go to cash, wait for Kaileb
 min_rebalance: 0.20
 
-# Paper fill cost per side (fee + slippage). Kraken AU Pro tier-1 taker is
-# 0.80%, so 0.009 models Kraken honestly. Use 0.0015 to model Binance (0.10%).
+approver: 42LUE             # only PR merges by this GitHub user count as YES
+
+# Approved proposals execute only if still fresh and the price hasn't run away
+proposal_expiry_hours: 36
+proposal_max_price_move: 0.05
+
+# Paper fill cost per side (fee + slippage). 0.009 ~ Kraken AU tier-1 taker.
 paper_cost_per_side: 0.009
 
-ntfy_topic: ""              # optional: phone push via the free ntfy app
+ntfy_topic: ""              # or repo secret NTFY_TOPIC
