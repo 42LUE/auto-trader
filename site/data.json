@@ -1,0 +1,156 @@
+{
+ "generated_at": "2026-11-19T06:13:30.837548+00:00",
+ "repo": "42LUE/auto-trader",
+ "config": {
+  "exchange": "kraken",
+  "symbol": "BTC/AUD",
+  "accounts": {
+   "claude": {
+    "mode": "paper",
+    "live_approved": false
+   },
+   "rule": {
+    "strategy": "trend_ensemble_half",
+    "strategy_params": {}
+   }
+  },
+  "start_capital": 20.0,
+  "max_capital": 20.0,
+  "allowed_exposures": [
+   0.0,
+   0.5,
+   1.0
+  ],
+  "kill_switch_equity": 0.0,
+  "pause_drawdown": 0.3,
+  "min_rebalance": 0.2,
+  "approver": "42LUE",
+  "proposal_expiry_hours": 36,
+  "proposal_max_price_move": 0.05,
+  "paper_cost_per_side": 0.009
+ },
+ "snapshot": {
+  "generated_at": "2026-11-19T06:13:30.749746+00:00",
+  "symbol": "BTC/AUD",
+  "exchange": "kraken",
+  "last_closed_candle": "2026-11-18",
+  "close": 94000.0,
+  "price_now": 94804.6,
+  "returns": {
+   "1d": -0.0238,
+   "7d": -0.129,
+   "30d": -0.1988,
+   "90d": -0.0836,
+   "365d": -0.3416
+  },
+  "moving_averages": {
+   "20": {
+    "value": 105688.94,
+    "price_vs_ma": -0.1106
+   },
+   "50": {
+    "value": 113182.7,
+    "price_vs_ma": -0.1695
+   },
+   "100": {
+    "value": 110551.43,
+    "price_vs_ma": -0.1497
+   },
+   "150": {
+    "value": 103984.79,
+    "price_vs_ma": -0.096
+   },
+   "200": {
+    "value": 103259.38,
+    "price_vs_ma": -0.0897
+   }
+  },
+  "rsi14": 23.1,
+  "realised_vol_30d_annual": 0.399,
+  "range_365d": {
+   "high": 144992.8,
+   "low": 84674.5,
+   "drawdown_from_high": -0.3517
+  },
+  "rule_benchmark_target": 0.0,
+  "last_14_closes": {
+   "2026-11-05": 109710.4,
+   "2026-11-06": 110432.6,
+   "2026-11-07": 110379.0,
+   "2026-11-08": 108541.1,
+   "2026-11-09": 108649.6,
+   "2026-11-10": 107245.6,
+   "2026-11-11": 107922.8,
+   "2026-11-12": 104850.0,
+   "2026-11-13": 100800.0,
+   "2026-11-14": 95156.4,
+   "2026-11-15": 96349.1,
+   "2026-11-16": 96366.9,
+   "2026-11-17": 96288.4,
+   "2026-11-18": 94000.0
+  },
+  "accounts": {
+   "claude": {
+    "mode": "paper",
+    "equity": 20.0,
+    "btc_exposure": 0.0,
+    "paused": false,
+    "shutdown": false
+   },
+   "rule": {
+    "mode": "paper",
+    "equity": 20.0,
+    "btc_exposure": 0.0,
+    "paused": false,
+    "shutdown": false
+   }
+  }
+ },
+ "accounts": {
+  "claude": {
+   "mode": "paper",
+   "start_capital": 20.0,
+   "fees_paid": 0.0,
+   "paused": false,
+   "shutdown": false,
+   "equity": 20.0,
+   "exposure": 0.0,
+   "series": [
+    {
+     "d": "2026-11-18",
+     "eq": 20.0,
+     "bh": 20.0
+    }
+   ],
+   "trades": []
+  },
+  "rule": {
+   "mode": "paper",
+   "start_capital": 20.0,
+   "fees_paid": 0.0,
+   "paused": false,
+   "shutdown": false,
+   "equity": 20.0,
+   "exposure": 0.0,
+   "series": [
+    {
+     "d": "2026-11-18",
+     "eq": 20.0,
+     "bh": 20.0
+    }
+   ],
+   "trades": []
+  }
+ },
+ "decisions": [],
+ "reports": {
+  "daily": [
+   {
+    "name": "2026-11-19",
+    "md": "# Daily: 2026-11-18\n\n**Market** BTC/AUD 94,000 \u00b7 1d -2.4% \u00b7 7d -12.9% \u00b7 30d -19.9% \u00b7 RSI 23.1\nPrice vs averages: 20d -11.1% \u00b7 50d -17.0% \u00b7 100d -15.0% \u00b7 150d -9.6% \u00b7 200d -9.0% \u00b7 rule wants 0% BTC\n\n- **Claude (trades for you)** \u2705 paper: $20.00 (+0.00 today, +0.00 total) \u00b7 0% BTC \u00b7 last action: hold\n- **Rule benchmark** \u2705 paper: $20.00 (+0.00 today, +0.00 total) \u00b7 0% BTC \u00b7 last action: hold\n- Buy & hold BTC since start: $20.00\n"
+   }
+  ],
+  "weekly": [],
+  "claude-review": []
+ }
+}
