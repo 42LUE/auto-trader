@@ -1,0 +1,26 @@
+# ---- $20 auto-trader config ------------------------------------------------
+# Phase 1 = paper. Do not change mode to live until Kaileb has approved it.
+mode: paper                 # paper | live
+live_approved: false        # Kaileb flips this, nobody else. Live also needs
+                            # env TRADER_LIVE_CONFIRM=I_APPROVE_REAL_MONEY
+
+exchange: kraken            # any ccxt id. kraken works from anywhere (incl. GitHub
+                            # Actions). binance = 0.1% fees but blocks US IPs, so
+                            # run it from your own PC in Australia.
+symbol: BTC/AUD             # binance: BTC/USDT is the deepest book
+
+strategy: trend_ensemble_half
+strategy_params: {}
+
+start_capital: 20.0         # paper starting balance (AUD)
+max_capital: 20.0           # live: bot never manages more than this
+kill_switch_equity: 0.0     # your rule: shut down at $0. I'd suggest 10.0 (−50%).
+pause_drawdown: 0.30        # go to cash + wait for approval if equity falls 30%
+                            # from its peak (backtest worst was -25%; worse = something's off)
+min_rebalance: 0.20
+
+# Paper fill cost per side (fee + slippage). Kraken AU Pro tier-1 taker is
+# 0.80%, so 0.009 models Kraken honestly. Use 0.0015 to model Binance (0.10%).
+paper_cost_per_side: 0.009
+
+ntfy_topic: ""              # optional: phone push via the free ntfy app
