@@ -7,7 +7,13 @@
 name: trader
 on:
   schedule:
-    - cron: "15 0 * * *"        # 11:15am Sydney (AEDT)
+    # GitHub cron is best-effort: runs near the top of the hour (00:00 UTC is the busiest
+    # slot of the day) are often delayed by hours or dropped. Week 47 runs landed ~6h45m
+    # late (~6pm Sydney). Off-peak minutes + two backups; later ones no-op on the same
+    # candle (bot.cycle checks last_run_candle) and skip the reports/phone push.
+    - cron: "41 0 * * *"        # 11:41am Sydney (AEDT), ~40 min after Kraken's daily close
+    - cron: "41 1 * * *"        # backup, 12:41pm
+    - cron: "41 3 * * *"        # backup, 2:41pm
   workflow_dispatch: {}
   push:
     branches: [main]

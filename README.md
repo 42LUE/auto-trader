@@ -3,7 +3,8 @@
 **Dashboard:** https://42lue.github.io/auto-trader/
 
 ## How it works
-1. **11:15am Sydney, GitHub Actions (`daily.py`)**
+1. **~11:41am Sydney, GitHub Actions (`daily.py`)**, with backup runs at 12:41 and 2:41pm because GitHub
+   often delays scheduled runs. A backup that finds the candle already processed only refreshes the snapshot.
    - Fetches BTC/AUD from Kraken and writes `data/snapshot.json`.
    - Runs the **rule benchmark** account, which trades automatically.
    - Executes any decisions you approved.
