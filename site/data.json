@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-22T01:51:26.151629+00:00",
+ "generated_at": "2026-11-22T06:38:23.690004+00:00",
  "repo": "42LUE/auto-trader",
  "config": {
   "exchange": "kraken",
@@ -30,51 +30,50 @@
   "paper_cost_per_side": 0.009
  },
  "snapshot": {
-  "generated_at": "2026-11-21T06:58:18.938877+00:00",
+  "generated_at": "2026-11-22T06:38:23.675938+00:00",
   "symbol": "BTC/AUD",
   "exchange": "kraken",
-  "last_closed_candle": "2026-11-20",
-  "close": 88863.9,
-  "price_now": 87720.2,
+  "last_closed_candle": "2026-11-21",
+  "close": 91134.6,
+  "price_now": 89452.7,
   "returns": {
-   "1d": -0.045,
-   "7d": -0.1184,
-   "30d": -0.2575,
-   "90d": -0.1733,
-   "365d": -0.337
+   "1d": 0.0256,
+   "7d": -0.0423,
+   "30d": -0.2136,
+   "90d": -0.1598,
+   "365d": -0.3073
   },
   "moving_averages": {
    "20": {
-    "value": 103780.82,
-    "price_vs_ma": -0.1437
+    "value": 102774.27,
+    "price_vs_ma": -0.1133
    },
    "50": {
-    "value": 111967.16,
-    "price_vs_ma": -0.2063
+    "value": 111356.82,
+    "price_vs_ma": -0.1816
    },
    "100": {
-    "value": 110573.37,
-    "price_vs_ma": -0.1963
+    "value": 110586.46,
+    "price_vs_ma": -0.1759
    },
    "150": {
-    "value": 103983.57,
-    "price_vs_ma": -0.1454
+    "value": 104002.0,
+    "price_vs_ma": -0.1237
    },
    "200": {
-    "value": 103067.22,
-    "price_vs_ma": -0.1378
+    "value": 102961.34,
+    "price_vs_ma": -0.1149
    }
   },
-  "rsi14": 18.6,
-  "realised_vol_30d_annual": 0.41,
+  "rsi14": 25.6,
+  "realised_vol_30d_annual": 0.42,
   "range_365d": {
    "high": 144992.8,
    "low": 84674.5,
-   "drawdown_from_high": -0.3871
+   "drawdown_from_high": -0.3715
   },
   "rule_benchmark_target": 0.0,
   "last_14_closes": {
-   "2026-11-07": 110379.0,
    "2026-11-08": 108541.1,
    "2026-11-09": 108649.6,
    "2026-11-10": 107245.6,
@@ -87,7 +86,8 @@
    "2026-11-17": 96288.4,
    "2026-11-18": 94000.0,
    "2026-11-19": 93053.2,
-   "2026-11-20": 88863.9
+   "2026-11-20": 88863.9,
+   "2026-11-21": 91134.6
   },
   "accounts": {
    "claude": {
@@ -130,6 +130,11 @@
      "d": "2026-11-20",
      "eq": 20.0,
      "bh": 18.5055
+    },
+    {
+     "d": "2026-11-21",
+     "eq": 20.0,
+     "bh": 18.871
     }
    ],
    "trades": []
@@ -157,6 +162,11 @@
      "d": "2026-11-20",
      "eq": 20.0,
      "bh": 18.5547
+    },
+    {
+     "d": "2026-11-21",
+     "eq": 20.0,
+     "bh": 18.9212
     }
    ],
    "trades": []
@@ -165,6 +175,10 @@
  "decisions": [],
  "reports": {
   "daily": [
+   {
+    "name": "2026-11-22",
+    "md": "# Daily: 2026-11-21\n\n**Market** BTC/AUD 91,135 \u00b7 1d +2.6% \u00b7 7d -4.2% \u00b7 30d -21.4% \u00b7 RSI 25.6\nPrice vs averages: 20d -11.3% \u00b7 50d -18.2% \u00b7 100d -17.6% \u00b7 150d -12.4% \u00b7 200d -11.5% \u00b7 rule wants 0% BTC\n\n- **Claude (trades for you)** \u2705 paper: $20.00 (+0.00 today, +0.00 total) \u00b7 0% BTC \u00b7 last action: hold\n- **Rule benchmark** \u2705 paper: $20.00 (+0.00 today, +0.00 total) \u00b7 0% BTC \u00b7 last action: hold\n- Buy & hold BTC since start: $18.87\n"
+   },
    {
     "name": "2026-11-21",
     "md": "# Daily: 2026-11-20\n\n**Market** BTC/AUD 88,864 \u00b7 1d -4.5% \u00b7 7d -11.8% \u00b7 30d -25.8% \u00b7 RSI 18.6\nPrice vs averages: 20d -14.4% \u00b7 50d -20.6% \u00b7 100d -19.6% \u00b7 150d -14.5% \u00b7 200d -13.8% \u00b7 rule wants 0% BTC\n\n- **Claude (trades for you)** \u2705 paper: $20.00 (+0.00 today, +0.00 total) \u00b7 0% BTC \u00b7 last action: hold\n- **Rule benchmark** \u2705 paper: $20.00 (+0.00 today, +0.00 total) \u00b7 0% BTC \u00b7 last action: hold\n- Buy & hold BTC since start: $18.51\n"
@@ -178,7 +192,17 @@
     "md": "# Daily: 2026-11-18\n\n**Market** BTC/AUD 94,000 \u00b7 1d -2.4% \u00b7 7d -12.9% \u00b7 30d -19.9% \u00b7 RSI 23.1\nPrice vs averages: 20d -11.1% \u00b7 50d -17.0% \u00b7 100d -15.0% \u00b7 150d -9.6% \u00b7 200d -9.0% \u00b7 rule wants 0% BTC\n\n- **Claude (trades for you)** \u2705 paper: $20.00 (+0.00 today, +0.00 total) \u00b7 0% BTC \u00b7 last action: hold\n- **Rule benchmark** \u2705 paper: $20.00 (+0.00 today, +0.00 total) \u00b7 0% BTC \u00b7 last action: hold\n- Buy & hold BTC since start: $20.00\n"
    }
   ],
-  "weekly": [],
-  "claude-review": []
+  "weekly": [
+   {
+    "name": "2026-W47",
+    "md": "# Weekly: week ending 2026-11-21\n\n| Account | This week | Since start | Trades (wk / total) | Fees |\n|---|---|---|---|---|\n| Claude \u2705 | +0.0% | +0.0% ($20.00) | 0 / 0 | $0.000 |\n| Rule \u2705 | +0.0% | +0.0% ($20.00) | 0 / 0 | $0.000 |\n| Buy & hold | -5.6% | -5.6% | \u2013 | \u2013 |\n\n**Claude vs rule: +0.00** \u2014 level.\n\n**Market** BTC/AUD 91,135 \u00b7 1d +2.6% \u00b7 7d -4.2% \u00b7 30d -21.4% \u00b7 RSI 25.6\nPrice vs averages: 20d -11.3% \u00b7 50d -18.2% \u00b7 100d -17.6% \u00b7 150d -12.4% \u00b7 200d -11.5% \u00b7 rule wants 0% BTC\n\n**What could I be wrong about?**\n- Nothing outside expectations this week.\n"
+   }
+  ],
+  "claude-review": [
+   {
+    "name": "2026-W47",
+    "md": "# Claude weekly review: 2026-W47 (week ending Sun 22 Nov 2026)\n\n## Verdict\n1. **The rule did its job.** It sat 100% in cash while BTC/AUD fell about 7.5% from its start mark. Both accounts are flat at $20.00, with 0 trades and $0 fees.\n2. **The Claude account isn't running yet.** There is no daily Claude decision task scheduled. No `decisions/` files and no proposal PRs exist, so the \"hold\" rows in the Claude ledger are just daily marks.\n3. **The automation runs but late.** Both scheduled GitHub runs started about 6h45m behind cron, around 6pm Sydney instead of 11:15am. Because of that, this review ran before today's daily and weekly reports existed. PR #1 proposes a fix.\n\n## Numbers (start 19 Nov \u2192 last mark 21 Nov 06:58 UTC, candle 2026-11-20)\n| | Equity | Week = since start | Trades | Fees | Max DD |\n|---|---|---|---|---|---|\n| Claude (yours, paper) | $20.00 | +0.0% | 0 | $0.00 | 0% |\n| Rule benchmark (paper) | $20.00 | +0.0% | 0 | $0.00 | 0% |\n| Buy & hold BTC/AUD | $18.51\u201318.55 | \u22127.2% to \u22127.5% | \u2013 | \u2013 | \u2013 |\n\n- Buy & hold is quoted as a range because the two accounts started 14 minutes apart, at ticker 94,804.6 and 94,553.1. On daily closes, BTC/AUD went from 94,000 (18 Nov) to 88,864 (20 Nov), which is \u22125.5%.\n- This is only 3 marks of history, so none of these numbers say anything statistically. Being in cash this week saved about $1.45 of drawdown. That's luck in the timing of the start date, not skill.\n- There are no `PAUSED` or `SHUTDOWN` files in either account. Trades per week (0) and drawdown (0%) are both inside expectations.\n\n## Current signal and distance to the next trade\nThe rule (`trend_ensemble_half`) wants **0% BTC**. BTC/AUD closed at 88,864 on 20 Nov, below all four averages. RSI(14) is 18.6, which is deeply oversold, but the rule ignores RSI.\n\n| SMA | Value | Close vs SMA | Rise needed to cross |\n|---|---|---|---|\n| 200d | 103,067 | \u221213.8% | **+16.0%** |\n| 150d | 103,984 | \u221214.5% | **+17.0%** |\n| 100d | 110,573 | \u221219.6% | +24.4% |\n| 50d | 111,967 | \u221220.6% | +26.0% |\n\n- **The next trade is a buy to 50%.** That needs a daily close above *both* the 150d and 200d averages, about **104k AUD or +17%** from here. The 200d is drifting down, about \u22120.2% over 2 days, so the bar is slowly lowering.\n- **Going to 100%** needs a close above all four averages, about **112k AUD or +26%**.\n- **No trade is likely this coming week** unless the market makes a V-shaped rebound.\n\n## Automation health\n- **Actions:** 4 runs in total, all successful. These were #1 manual on 19 Nov, then scheduled runs on 20 and 21 Nov. Nothing was missed, but both scheduled runs were late:\n  - cron `15 0 * * *` (00:15 UTC)\n  - actual starts at 07:04 and 06:57 UTC\n- **Today's run (Sunday 22 Nov)** had not fired when this review ran at 01:48 UTC. That fits the lag, so it isn't a failure yet. If there is no `reports/weekly/2026-W47.md` by tonight, treat it as a missed run.\n- **The Claude daily decision task doesn't exist.** The only scheduled tasks on the account are this weekly review and the morning brief. The README's \"~11:45am Claude's daily task\" is not running. Until it does, the Claude account will sit at $20 cash forever and the Claude vs rule comparison measures nothing.\n  - Even if you create it at 11:45am, it would currently read an ~18h-old snapshot, because the bot runs around 6pm.\n- **Bot vs backtest parity:** `tests/replay_parity.py` passes, with 71 trades in both replay and backtest. The $35.48 vs $37.07 equity gap is the documented one-day-later start plus filling at the close or ticker rather than the next open. That is not a bug.\n- **Small ledger oddities.** None of these affect trading.\n  - `state/rule/state.json` still has a `last_signal` block from the first version of the bot. It's stale (candle 2026-11-18) and no longer updated.\n  - Each daily report's file name is the run date, while its header is the candle date. For example, `2026-11-21.md` is headed \"Daily: 2026-11-20\".\n  - The Claude account rows say `action: hold`, but no decision was ever made. \"No decision\" would be more honest.\n\n## What could I be wrong about?\n- **The expected return is lower than the headline.** The 20\u201328% CAGR figure is the backtest at **0.15% cost per side**. The paper account charges **0.9% per side** (`paper_cost_per_side`), and the same out-of-sample test at high fees gives **~18.4% CAGR** (`results/summary.csv`). Judge the rule against roughly 18%/yr and a \u221225% to \u221230% worst drawdown, not 28%.\n- **The backtest is on BTC/USD; the bot trades BTC/AUD.** AUD moves shift where price sits relative to its averages, so signals and trade dates will differ from the backtest. The AUD version hasn't been tested out of sample.\n- **Cash can be the wrong call.** Trend filters buy back late. With RSI at 18.6 after a \u221226% month, a sharp rebound would leave the rule waiting for +17% before it buys. That's the cost it accepted in 2022\u201326, and it's real.\n- **The GitHub delay might be temporary.** It could be specific to a new repo or this week's load. If so, PR #1 is cheap insurance that may not have been needed.\n- **There may be a decision task I can't see.** A task stored locally in the desktop app wouldn't show up in my list. But no decision files or PRs exist, so either way nothing has been produced.\n- **Paying for itself.** On $20, even a good year at ~18% is about **$3.60**. That covers no subscription, API or other cost, and these numbers give no reason to think otherwise. This is a cheap, honest experiment in whether Claude's research beats a dumb rule. It is not an income source.\n\n## Proposals (max 2)\n1. **[PR #1, needs your merge]** Make the daily run land on time.\n   - Move cron off the congested 00:15 UTC slot to 00:41 UTC (11:41am Sydney), with backups at 12:41 and 2:41pm.\n   - Backups that find the candle already processed only refresh the snapshot and dashboard, with no duplicate reports or phone pushes.\n   - There's no change to strategy, limits or config: https://github.com/42LUE/auto-trader/pull/1\n2. **[Your call, not a code change]** Create the Claude daily decision task, or decide you don't want one. If you create it:\n   - Schedule it for after the bot's latest backup, about **3:07pm Sydney** if PR #1 is merged, so it reads a fresh snapshot.\n   - Have it follow `CLAUDE.md`.\n   - Without it, the \"Claude trades, Kaileb approves\" half of this repo is idle.\n"
+   }
+  ]
  }
 }
