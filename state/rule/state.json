@@ -6,8 +6,8 @@
   "base": 0.0,
   "fees_paid": 0.0,
   "first_price": 94553.1,
-  "last_run_candle": "2026-11-21",
-  "runs": 4,
+  "last_run_candle": "2026-11-22",
+  "runs": 5,
   "last_signal": {
     "candle": "2026-11-18",
     "close": 94000.0,
