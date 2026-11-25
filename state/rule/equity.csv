@@ -5,3 +5,4 @@ time,candle,price,cash,btc,equity,buy_hold_equity,target,action,reason
 2026-11-22T06:38:23.673678+00:00,2026-11-21,89452.7,20.0,0.0,20.0,18.9212,0.0,hold,rule trend_ensemble_half
 2026-11-23T07:26:53.307875+00:00,2026-11-22,92369.9,20.0,0.0,20.0,19.5382,0.0,hold,rule trend_ensemble_half
 2026-11-24T09:47:17.420702+00:00,2026-11-23,90667.8,20.0,0.0,20.0,19.1782,0.0,hold,rule trend_ensemble_half
+2026-11-25T08:21:52.650641+00:00,2026-11-24,89612.3,20.0,0.0,20.0,18.9549,0.0,hold,rule trend_ensemble_half
